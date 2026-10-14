@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background: #0f0e0d;
+  color: #f3eee8;
+  color-scheme: dark;
+}
+
+body {
+  font-feature-settings: 'tnum' 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(224, 123, 95, 0.35);
+  color: #fff7f2;
+}
+
+* {
+  scrollbar-color: #3a342e transparent;
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #302b26;
+  border: 2px solid #0f0e0d;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f3eee8;
+  -webkit-box-shadow: 0 0 0 1000px #141210 inset;
+  caret-color: #f3eee8;
+  transition: background-color 9999s ease-out;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-white/10 bg-surface shadow-card;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-surface2 px-3.5 py-2 text-sm font-medium text-ink shadow-card transition hover:bg-surface3 disabled:opacity-50;
+  }
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-revenue px-4 py-2 text-sm font-semibold text-onRevenue transition hover:bg-revenueHover disabled:opacity-50;
+  }
+  .input {
+    @apply w-full rounded-xl border border-white/10 bg-well px-3 py-2 text-sm text-ink outline-none transition;
+  }
+  .input::placeholder {
+    color: #6f6860;
+  }
+  .input:focus {
+    border-color: rgba(224, 123, 95, 0.65);
+    box-shadow: 0 0 0 2px rgba(224, 123, 95, 0.18);
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-stone-400;
+  }
+  .tabs {
+    @apply inline-flex rounded-xl bg-well p-1;
+  }
+  .tab {
+    @apply rounded-lg px-3 py-1 text-sm text-stone-400 transition hover:text-ink;
+  }
+  .tab-active {
+    @apply bg-surface3 text-ink shadow-card;
+  }
+  .code {
+    @apply block overflow-x-auto whitespace-pre rounded-xl border border-white/10 p-4 font-mono text-[13px] leading-relaxed;
+    background: #0b0a09;
+    color: #e8e2da;
+  }
+}
+
+/* Dark theme: remap the light Tailwind palette used across the dashboard. */
+.dark .bg-white {
+  background-color: #191715;
+}
+.dark .bg-stone-50 {
+  background-color: #151311;
+}
+.dark .bg-stone-100 {
+  background-color: #211e1b;
+}
+.dark .bg-stone-300 {
+  background-color: #4d4842;
+}
+.dark .bg-stone-900 {
+  background-color: #0b0a09;
+}
+.dark .bg-stone-900\/30 {
+  background-color: rgba(0, 0, 0, 0.65);
+}
+.dark .bg-amber-50 {
+  background-color: #251b0b;
+}
+.dark .bg-ink {
+  background-color: #2a2521;
+}
+
+.dark .hover\:bg-stone-50:hover {
+  background-color: #201d1a;
+}
+.dark .hover\:bg-stone-100:hover {
+  background-color: #2a2622;
+}
+.dark .hover\:bg-stone-700:hover {
+  background-color: #3a342e;
+}
+
+.dark .text-white {
+  color: #f7f2ec;
+}
+.dark .text-stone-100 {
+  color: #f3eee8;
+}
+.dark .text-stone-400 {
+  color: #918a82;
+}
+.dark .text-stone-500 {
+  color: #a8a098;
+}
+.dark .text-stone-600 {
+  color: #c0b8ae;
+}
+.dark .text-stone-700 {
+  color: #d8d1c8;
+}
+.dark .text-stone-800 {
+  color: #ece6df;
+}
+.dark .text-amber-700 {
+  color: #f2c879;
+}
+.dark .text-amber-900 {
+  color: #f7dca6;
+}
+.dark .text-emerald-600 {
+  color: #34d399;
+}
+.dark .text-red-500 {
+  color: #fb7185;
+}
+.dark .text-red-600 {
+  color: #fb7185;
+}
+.dark .text-violet-700 {
+  color: #c4b5fd;
+}
+.dark .hover\:text-stone-700:hover {
+  color: #d8d1c8;
+}
+.dark .hover\:text-stone-800:hover {
+  color: #ece6df;
+}
+
+.dark .border-stone-100 {
+  border-color: #26221f;
+}
+.dark .border-stone-200 {
+  border-color: #302b26;
+}
+.dark .border-stone-200\/80 {
+  border-color: rgba(48, 43, 38, 0.8);
+}
+.dark .border-amber-200 {
+  border-color: #4a3413;
+}
+.dark .border-red-200 {
+  border-color: #4c1d1d;
+}
+.dark .border-violet-200 {
+  border-color: #3b2a5a;
+}
+
+.dark .ring-stone-300\/70 {
+  --tw-ring-color: rgba(120, 113, 108, 0.5);
+}
+.dark .ring-white {
+  --tw-ring-color: #191715;
+}
