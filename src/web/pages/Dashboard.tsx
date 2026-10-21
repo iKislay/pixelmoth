@@ -1,0 +1,178 @@
+import { useCallback, useMemo, useState } from 'react';
+import { navigate } from '../App';
+import { GoalsPanel } from '../components/GoalsPanel';
+import { OverviewCard } from '../components/OverviewCard';
+import { Panel, renderLabel } from '../components/Panel';
+import { Toolbar } from '../components/Toolbar';
+import { VisitorModal } from '../components/VisitorModal';
+import { qs, type Overview, type Site } from '../lib/api';
+import { DashContext, type Dash } from '../lib/context';
+import { fmtMoney } from '../lib/format';
+import { useApi } from '../lib/useApi';
+import { useQueryState } from '../lib/useQueryState';
+
+const FILTER_LABELS: Record<string, { label: string; dim: string }> = {
+  channel: { label: 'Channel', dim: 'channel' },
+  source: { label: 'Referrer', dim: 'source' },
+  utm_campaign: { label: 'Campaign', dim: 'campaign' },
+  utm_term: { label: 'Keyword', dim: 'keyword' },
+  utm_source: { label: 'UTM source', dim: 'utm_source' },
+  utm_medium: { label: 'UTM medium', dim: 'utm_medium' },
+  ref: { label: 'Ref', dim: 'ref' },
+  country: { label: 'Country', dim: 'country' },
+  region: { label: 'Region', dim: 'region' },
+  city: { label: 'City', dim: 'city' },
+  browser: { label: 'Browser', dim: 'browser' },
+  os: { label: 'OS', dim: 'os' },
+  device: { label: 'Device', dim: 'device' },
+  page: { label: 'Visited page', dim: 'page' },
+  entry_page: { label: 'Entry page', dim: 'entry_page' },
+  hostname: { label: 'Hostname', dim: 'hostname' },
+  goal: { label: 'Completed goal', dim: 'goal' },
+};
+
+export function Dashboard({ siteId, demo = false }: { siteId: string; demo?: boolean }) {
+  const [q, update] = useQueryState();
+  const [reloadKey, setReloadKey] = useState(0);
+  const [visitor, setVisitor] = useState<string | null>(null);
+  const { data: sites } = useApi<Site[]>('/api/sites');
+  const site = sites?.find((s) => s.id === siteId);
+  const { data: overview, loading } = useApi<Overview>(site ? `/api/sites/${siteId}/overview?${qs(q)}` : null, reloadKey);
+
+  const addFilter = useCallback((key: string, value: string) => update({ filters: { ...q.filters, [key]: value } }), [q.filters, update]);
+  const removeFilter = (key: string) => {
+    const { [key]: _, ...rest } = q.filters;
+    update({ filters: rest });
+  };
+
+  const dash: Dash | null = useMemo(() => {
+    if (!site) return null;
+    const decimals = overview?.decimals ?? 2;
+    return {
+      site,
+      q,
+      reloadKey,
+      decimals,
+      money: (minor, compact) => fmtMoney(minor, site.currency, decimals, compact),
+      addFilter,
+      openVisitor: setVisitor,
+    };
+  }, [site, q, reloadKey, overview?.decimals, addFilter]);
+
+  if (sites && !site) {
+    return (
+      <div className="p-10 text-center">
+        Site not found.{' '}
+        <button className="underline" onClick={() => navigate('/')}>
+          Back to websites
+        </button>
+      </div>
+    );
+  }
+  if (!dash || !site) return null;
+
+  return (
+    <DashContext.Provider value={dash}>
+      <div className="mx-auto max-w-[1480px] px-3 py-6 sm:px-6 lg:py-10">
+        {demo && (
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <span>
+              <span className="font-semibold">Live demo.</span> Every number on this page is dummy data for a fictional
+              website. Click around, switch periods, filter rows and open a visitor to explore.
+            </span>
+            <button className="btn py-1.5" onClick={() => navigate('/')}>
+              Exit demo
+            </button>
+          </div>
+        )}
+        <Toolbar
+          site={site}
+          sites={sites!}
+          q={q}
+          update={update}
+          overview={overview}
+          onRefresh={() => setReloadKey((k) => k + 1)}
+          loading={loading}
+          demo={demo}
+        />
+
+        {Object.keys(q.filters).length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {Object.entries(q.filters).map(([k, v]) => (
+              <span key={k} className="flex items-center gap-2 rounded-xl border border-stone-200 bg-white py-1 pl-3 pr-1 text-sm shadow-card">
+                <span className="text-stone-500">{FILTER_LABELS[k]?.label ?? k} is</span>
+                <span className="flex items-center gap-1.5 font-medium">{renderLabel(FILTER_LABELS[k]?.dim ?? k, { label: v || null })}</span>
+                <button className="rounded-lg px-1.5 text-stone-400 hover:bg-stone-100 hover:text-ink" onClick={() => removeFilter(k)} aria-label="Remove filter">
+                  ✕
+                </button>
+              </span>
+            ))}
+            <button className="text-sm text-stone-500 underline-offset-2 hover:underline" onClick={() => update({ filters: {} })}>
+              Clear all
+            </button>
+          </div>
+        )}
+
+        <div className="mt-5">
+          <OverviewCard data={overview} />
+        </div>
+
+        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+          <Panel
+            tabs={[
+              { label: 'Channel', dim: 'channel', filter: 'channel' },
+              { label: 'Referrer', dim: 'source', filter: 'source' },
+              { label: 'Campaign', dim: 'campaign', filter: 'utm_campaign' },
+              { label: 'Keyword', dim: 'keyword', filter: 'utm_term' },
+            ]}
+          />
+          <Panel
+            tabs={[
+              { label: 'Country', dim: 'country', filter: 'country' },
+              { label: 'Region', dim: 'region', filter: 'region' },
+              { label: 'City', dim: 'city', filter: 'city' },
+            ]}
+          />
+          <Panel
+            tabs={[
+              { label: 'Page', dim: 'page', filter: 'page' },
+              { label: 'Entry page', dim: 'entry_page', filter: 'entry_page' },
+              { label: 'Exit link', dim: 'exit_link' },
+              { label: 'Hostname', dim: 'hostname', filter: 'hostname' },
+            ]}
+          />
+          <Panel
+            tabs={[
+              { label: 'Browser', dim: 'browser', filter: 'browser' },
+              { label: 'OS', dim: 'os', filter: 'os' },
+              { label: 'Device', dim: 'device', filter: 'device' },
+            ]}
+          />
+        </div>
+
+        <div className="mt-5">
+          <GoalsPanel totalVisitors={overview?.current.visitors ?? 0} />
+        </div>
+
+        <p className="mt-8 text-center text-xs text-stone-400">
+          {demo ? (
+            <>
+              Live demo · dummy data · times in {site.timezone} · revenue in {site.currency} ·{' '}
+              <button className="underline-offset-2 hover:underline" onClick={() => navigate('/')}>
+                Log in to your own dashboard
+              </button>
+            </>
+          ) : (
+            <>
+              Times in {site.timezone} · Revenue in {site.currency} ·{' '}
+              <button className="underline-offset-2 hover:underline" onClick={() => navigate(`/site/${site.id}/settings`)}>
+                Settings & install
+              </button>
+            </>
+          )}
+        </p>
+      </div>
+      <VisitorModal key={visitor ?? 'none'} visitorId={visitor} onClose={() => setVisitor(null)} />
+    </DashContext.Provider>
+  );
+}
